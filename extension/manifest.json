@@ -3,7 +3,7 @@
   "name": "Browser Sniffer",
   "version": "0.1.0",
   "description": "Capture network activity via Chrome DevTools Protocol",
-  "permissions": ["debugger", "tabs", "activeTab", "storage", "downloads"],
+  "permissions": ["debugger", "tabs", "activeTab", "downloads", "storage"],
   "background": {
     "service_worker": "background.js"
   },
