@@ -1,12 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Browser Sniffer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- popup.js listens for DOMContentLoaded, so loading in <head> is fine -->
     <script src="popup.js"></script>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 12px; }
+      .row { display: flex; gap: 8px; margin-bottom: 8px; }
+      button { flex: 1; padding: 8px 10px; }
+    </style>
   </head>
   <body>
-    <button id="start">Start</button>
-    <button id="stop">Stop</button>
+    <div class="row">
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+    </div>
+    <div class="row">
+      <button id="export">Export</button>
+      <button id="purge">Purge</button>
+    </div>
   </body>
 </html>
