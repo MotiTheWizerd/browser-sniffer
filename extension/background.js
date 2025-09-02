@@ -16,6 +16,7 @@ let dropBodies = false;
 
 let runMeta = null;
 let pendingResponses = new Map();
+const activeDebuggers = new Map();
 
 const counters = {
   http_req: 0,
@@ -412,6 +413,7 @@ chrome.runtime.onMessage.addListener(async (message) => {
       await storeMeta();
       console.log('Attached to tab', tab.id);
       pendingResponses = new Map();
+      activeDebuggers.set(tab.id, { target });
     } catch (err) {
       console.error('Failed to attach', err);
     }
@@ -419,7 +421,9 @@ chrome.runtime.onMessage.addListener(async (message) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
     try {
-      await chrome.debugger.detach({ tabId: tab.id });
+      const dbg = activeDebuggers.get(tab.id);
+      await chrome.debugger.detach(dbg ? dbg.target : { tabId: tab.id });
+      activeDebuggers.delete(tab.id);
       runMeta.stopped_at = Date.now();
       await storeMeta();
       await flushBuffer();
