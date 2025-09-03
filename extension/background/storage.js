@@ -1,27 +1,46 @@
 import { state } from './state.js';
 
 const DB_NAME = 'netprofiler';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const EVENTS_STORE = 'events_v1';
 const META_STORE = 'meta_v1';
 
 let dbPromise = null;
 
+function ensureStores(db) {
+  if (!db.objectStoreNames.contains(EVENTS_STORE)) {
+    db.createObjectStore(EVENTS_STORE, { autoIncrement: true });
+  }
+  if (!db.objectStoreNames.contains(META_STORE)) {
+    db.createObjectStore(META_STORE, { keyPath: 'key' });
+  }
+}
+
 export async function openDB() {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = () => ensureStores(req.result);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(EVENTS_STORE)) {
-        db.createObjectStore(EVENTS_STORE, { autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains(META_STORE)) {
-        db.createObjectStore(META_STORE, { keyPath: 'key' });
+      if (
+        !db.objectStoreNames.contains(EVENTS_STORE) ||
+        !db.objectStoreNames.contains(META_STORE)
+      ) {
+        db.close();
+        const delReq = indexedDB.deleteDatabase(DB_NAME);
+        delReq.onerror = () => reject(delReq.error);
+        delReq.onsuccess = () => {
+          const retry = indexedDB.open(DB_NAME, DB_VERSION);
+          retry.onupgradeneeded = () => ensureStores(retry.result);
+          retry.onerror = () => reject(retry.error);
+          retry.onsuccess = () => resolve(retry.result);
+        };
+      } else {
+        resolve(db);
       }
     };
-    req.onerror = () => reject(req.error);
-    req.onsuccess = () => resolve(req.result);
   });
   return dbPromise;
 }
