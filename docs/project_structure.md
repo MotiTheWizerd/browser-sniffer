@@ -13,6 +13,7 @@
       - Event buffering for performance
       - Export functionality to JSON files
       - Storage management with purging capability
+      - Configurable capture filters and thresholds
 
   Technical Implementation
    - Uses Chrome Debugger API to capture network events
@@ -35,6 +36,7 @@ extension/
 ├── background/
 │   ├── buffer.js
 │   ├── main.js
+│   ├── settings.js
 │   ├── network.js
 │   ├── redact.js
 │   ├── runtime.js
