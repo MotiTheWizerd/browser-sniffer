@@ -151,57 +151,60 @@ setInterval(() => {
 // Reconcile on startup
 reconcileDebuggerState();
 
-chrome.runtime.onMessage.addListener(async (message) => {
-  if (message.command === 'start') {
-    console.log('Received start command');
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) {
-      console.warn('No active tab to attach');
-      return;
-    }
-    
-    try {
-      console.log('Purging existing data before starting new recording');
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  (async () => {
+    if (message.command === 'start') {
+      console.log('Received start command');
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) {
+        console.warn('No active tab to attach');
+        return;
+      }
+
+      try {
+        console.log('Purging existing data before starting new recording');
+        await purgeData();
+
+        console.log('Calling ensureAttached for tab', tab.id);
+        await ensureAttached(tab.id);
+        state.runMeta = { run_id: `run_${Date.now()}`, started_at: Date.now(), counters: state.counters };
+        await storeMeta();
+        state.pendingResponses = new Map();
+        console.log('Start command completed successfully');
+      } catch (err) {
+        console.error('Failed to attach', err);
+      }
+    } else if (message.command === 'stop') {
+      console.log('Received stop command');
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) {
+        console.log('No active tab to detach');
+        return;
+      }
+
+      try {
+        console.log('Calling debugStates for tab', tab.id);
+        await debugStates(tab.id, 'pre-detach');
+        console.log('Calling safeDetach for tab', tab.id);
+        await safeDetach(tab.id);
+        state.runMeta.stopped_at = Date.now();
+        await storeMeta();
+        await flushBuffer();
+        console.log('Calling debugStates for tab', tab.id);
+        await debugStates(tab.id, 'post-detach');
+        console.log('Stop command completed successfully');
+      } catch (err) {
+        console.error('Failed to detach', err);
+      }
+    } else if (message.command === 'export') {
+      console.log('Received export command');
+      await exportData();
+    } else if (message.command === 'purge') {
+      console.log('Received purge command');
       await purgeData();
-      
-      console.log('Calling ensureAttached for tab', tab.id);
-      await ensureAttached(tab.id);
-      state.runMeta = { run_id: `run_${Date.now()}`, started_at: Date.now(), counters: state.counters };
-      await storeMeta();
-      state.pendingResponses = new Map();
-      console.log('Start command completed successfully');
-    } catch (err) {
-      console.error('Failed to attach', err);
     }
-  } else if (message.command === 'stop') {
-    console.log('Received stop command');
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) {
-      console.log('No active tab to detach');
-      return;
-    }
-    
-    try {
-      console.log('Calling debugStates for tab', tab.id);
-      await debugStates(tab.id, 'pre-detach');
-      console.log('Calling safeDetach for tab', tab.id);
-      await safeDetach(tab.id);
-      state.runMeta.stopped_at = Date.now();
-      await storeMeta();
-      await flushBuffer();
-      console.log('Calling debugStates for tab', tab.id);
-      await debugStates(tab.id, 'post-detach');
-      console.log('Stop command completed successfully');
-    } catch (err) {
-      console.error('Failed to detach', err);
-    }
-  } else if (message.command === 'export') {
-    console.log('Received export command');
-    await exportData();
-  } else if (message.command === 'purge') {
-    console.log('Received purge command');
-    await purgeData();
-  }
+  })().finally(() => sendResponse());
+  return true;
 });
 
 // Clean up whenever Chrome detaches us

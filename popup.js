@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const $ = (id) => document.getElementById(id);
-  const send = (command) => chrome.runtime.sendMessage({ command });
+  const send = async (command) => {
+    try {
+      await chrome.runtime.sendMessage({ command });
+    } catch (err) {
+      console.warn('command dispatch failed', err);
+    }
+  };
 
   let settings = {};
 
@@ -49,8 +55,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  $('#start')?.addEventListener('click', () => send('start'));
-  $('#stop')?.addEventListener('click', () => send('stop'));
-  $('#export')?.addEventListener('click', () => send('export'));
-  $('#purge')?.addEventListener('click', () => send('purge'));
+  $('#start')?.addEventListener('click', () => { send('start'); });
+  $('#stop')?.addEventListener('click', () => { send('stop'); });
+  $('#export')?.addEventListener('click', () => { send('export'); });
+  $('#purge')?.addEventListener('click', () => { send('purge'); });
 });
