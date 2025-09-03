@@ -5,7 +5,8 @@ export const state = {
   dropBodies: false,
   runMeta: null,
   pendingResponses: new Map(),
-  activeDebuggers: new Map(),
+  activeDebuggers: new Map(), // tabId -> { target, attachedAt }
+  opLocks: new Map(),        // tabId -> Promise (prevents races)
   counters: {
     http_req: 0,
     http_res: 0,

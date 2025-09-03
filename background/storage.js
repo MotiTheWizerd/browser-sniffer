@@ -62,6 +62,20 @@ export async function flushBuffer() {
   state.lastFlush = Date.now();
 }
 
+// Helper function to properly encode Unicode strings to base64
+function base64Encode(str) {
+  // First convert to UTF-8 bytes
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  
+  // Then convert bytes to base64
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export async function exportData() {
   await flushBuffer();
   const db = await openDB();
@@ -89,10 +103,9 @@ export async function exportData() {
         cursor.continue();
       } else {
         const lines = allEvents.map((e) => JSON.stringify(e)).join('\n');
-        const blob1 = new Blob([lines], { type: 'application/json' });
-        const url1 = URL.createObjectURL(blob1);
+        const data1 = 'data:application/json;base64,' + base64Encode(lines);
         chrome.downloads.download({
-          url: url1,
+          url: data1,
           filename: 'capture.v1.jsonl',
           saveAs: true,
         });
@@ -108,12 +121,10 @@ export async function exportData() {
           p95_payload_kb: percentile(payloadSizes, 95),
           median_ttfb_ms: percentile(ttfbs, 50),
         };
-        const blob2 = new Blob([JSON.stringify(stats, null, 2)], {
-          type: 'application/json',
-        });
-        const url2 = URL.createObjectURL(blob2);
+        const statsJson = JSON.stringify(stats, null, 2);
+        const data2 = 'data:application/json;base64,' + base64Encode(statsJson);
         chrome.downloads.download({
-          url: url2,
+          url: data2,
           filename: 'stats.v1.json',
           saveAs: true,
         });
