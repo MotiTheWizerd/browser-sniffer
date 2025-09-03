@@ -8,3 +8,5 @@ It exposes endpoints for monitoring and interacting with the brain:
 - `POST /build_profile` – run derivation to produce a profile and summary.
 - `GET /profile` – download the generated `profile.v1.json`.
 - `GET /summary` – download the markdown summary of findings.
+=======
+Documentation for the main component of the backend.

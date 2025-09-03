@@ -1,5 +1,6 @@
 # Backend Documentation
 
+
 The backend "Agent Brain" consumes network events captured by the extension and synthesizes a site profile.  It runs as a FastAPI service and stores results on disk.
 
 ## Modules
@@ -10,3 +11,6 @@ The backend "Agent Brain" consumes network events captured by the extension and 
 - [models](modules/models/) – Pydantic models describing HTTP and WebSocket events.
 - [utils](modules/utils/) – helper utilities for provider detection and URL templating.
 - [main](modules/main/) – FastAPI entry points exposing the service.
+
+Overview of backend (brain) modules and services.
+

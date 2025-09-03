@@ -7,3 +7,5 @@ Pydantic models enforce the schema for events and their nested structures:
 - `WSInfo` describes WebSocket frames.
 - Helper models (`HTTPBody`, `HTTPTiming`, `HTTPCache`) provide structure for nested fields.
 Validation ensures that HTTP events include `http` data and WebSocket events include `ws` data.
+=======
+Documentation for the models component of the backend.

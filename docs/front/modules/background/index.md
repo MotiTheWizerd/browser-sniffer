@@ -8,3 +8,5 @@ Background scripts coordinate data collection:
 - `buffer.js` batches events in memory and triggers periodic flushes.
 - `storage.js` persists metadata and events into IndexedDB and supports exporting/purging.
 - `state.js` holds runtime counters and flags such as buffer size and drop‑body mode.
+=======
+Documentation for the background component of the extension.

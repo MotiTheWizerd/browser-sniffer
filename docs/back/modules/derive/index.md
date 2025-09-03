@@ -10,3 +10,5 @@ Functions in `derive.py` convert ingested events into summarized profile data:
 - `derive_realtime` tracks WebSocket connections and frame counts.
 - `derive_third_parties` lists external hosts and maps common providers.
 - `derive_performance` calculates median time‑to‑first‑byte and the 95th percentile payload size.
+=======
+Documentation for the derive component of the backend.
