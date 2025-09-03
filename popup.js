@@ -8,8 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  let settings = {};
+  // Bind button handlers immediately so the popup stays responsive even if
+  // settings loading stalls.
+  $('#start')?.addEventListener('click', () => { send('start'); });
+  $('#stop')?.addEventListener('click', () => { send('stop'); });
+  $('#export')?.addEventListener('click', () => { send('export'); });
+  $('#purge')?.addEventListener('click', () => { send('purge'); });
 
+  // Load settings asynchronously after handlers are in place
+  let settings = {};
   try {
     ({ settings } = await chrome.storage.sync.get(['settings']));
   } catch (err) {
@@ -54,9 +61,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('settings save failed', err);
     }
   });
-
-  $('#start')?.addEventListener('click', () => { send('start'); });
-  $('#stop')?.addEventListener('click', () => { send('stop'); });
-  $('#export')?.addEventListener('click', () => { send('export'); });
-  $('#purge')?.addEventListener('click', () => { send('purge'); });
 });
