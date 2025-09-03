@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { SETTINGS } from './settings.js';
 
 export async function sha256Hex(input) {
   let data;
@@ -89,7 +90,17 @@ export function templatePath(path) {
     .join('/');
 }
 
-export async function prepareBody(body, isBase64) {
+export async function prepareBody(body, isBase64, kindHint) {
+  if (
+    (kindHint === 'request' && !SETTINGS.capture.request_bodies) ||
+    (kindHint === 'response' && !SETTINGS.capture.response_bodies)
+  ) {
+    return {
+      kind: 'none',
+      size: body ? (isBase64 ? atob(body).length : body.length) : 0,
+    };
+  }
+  const CAP = SETTINGS.thresholds.body_cap ?? BODY_CAP;
   if (state.dropBodies) {
     state.counters.dropped_bodies++;
     return { kind: 'none', size: 0 };
@@ -102,16 +113,15 @@ export async function prepareBody(body, isBase64) {
     const size = bin.length;
     const hash = await sha256Hex(new TextEncoder().encode(bin));
     return { kind: 'binary', size, hash };
-  } else {
-    const size = body.length;
-    const truncated = body.slice(0, BODY_CAP);
-    let sample = await redactString(truncated);
-    if (size > BODY_CAP) {
-      sample += '...<truncated>';
-    }
-    const hash = await sha256Hex(body);
-    return { kind: 'text', size, hash, sample };
   }
+  const size = body.length;
+  const truncated = body.slice(0, CAP);
+  let sample = await redactString(truncated);
+  if (size > CAP) {
+    sample += '...<truncated>';
+  }
+  const hash = await sha256Hex(body);
+  return { kind: 'text', size, hash, sample };
 }
 
 const BODY_CAP = 128 * 1024; // 128KB

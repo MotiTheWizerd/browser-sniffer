@@ -1,12 +1,45 @@
 import { state } from './state.js';
 import { addEvent } from './buffer.js';
 import { maskQuery, redactHeaders, templatePath, prepareBody } from './redact.js';
+import { SETTINGS } from './settings.js';
+
+function isAssetByPathOrType(url, resHeaders) {
+  const p = url.pathname.toLowerCase();
+  if (/\.(js|css|png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf|eot|mp4|mp3|webm)$/i.test(p)) return true;
+  const ct = resHeaders?.['content-type']?.toLowerCase();
+  if (ct && /(javascript|css|image|font|audio|video)\b/.test(ct)) return true;
+  return false;
+}
+function isAnalyticsHost(host) {
+  return (SETTINGS.host_filters.analytics || []).some(sfx => host.endsWith(sfx));
+}
+function shouldCaptureHttp(evt) {
+  const host = evt.http?.url?.host || '';
+  const resHeaders = evt.http?.headers?.res;
+  if (!SETTINGS.capture.http_assets && isAssetByPathOrType(new URL(evt.http.url.raw), resHeaders)) return false;
+  if (!SETTINGS.capture.analytics && isAnalyticsHost(host)) return false;
+  return true;
+}
+function isLikelyJson(str) {
+  if (!str || typeof str !== 'string') return false;
+  const s = str.trim();
+  if (!/^[\[{"]/.test(s)) return false;
+  try { JSON.parse(s); return true; } catch { return false; }
+}
+function shouldCaptureWsFrame(evt) {
+  const min = SETTINGS.thresholds.ws_min_bytes ?? 40;
+  const size = evt.ws?.size ?? 0;
+  if (!SETTINGS.capture.ws_small_frames && size < min && !isLikelyJson(evt.ws?.preview)) {
+    return false;
+  }
+  return true;
+}
 
 export async function handleRequest(params, tabId) {
   const urlObj = new URL(params.request.url);
   const query = maskQuery(urlObj.searchParams);
   const headers = await redactHeaders(params.request.headers || {});
-  const body = await prepareBody(params.request.postData || '', false);
+  const body = await prepareBody(params.request.postData || '', false, 'request');
   const evt = {
     id: `evt_${Date.now()}_${state.seq++}`,
     plane: 'A',
@@ -33,6 +66,7 @@ export async function handleRequest(params, tabId) {
     },
   };
   state.counters.http_req++;
+  if (!shouldCaptureHttp(evt)) return;
   addEvent(evt);
 }
 
@@ -44,7 +78,7 @@ export async function handleResponse(response, loadingFinished, tabId) {
     const result = await chrome.debugger.sendCommand({ tabId }, 'Network.getResponseBody', {
       requestId: loadingFinished.requestId,
     });
-    body = await prepareBody(result.body, result.base64Encoded);
+    body = await prepareBody(result.body, result.base64Encoded, 'response');
   } catch (err) {
     console.warn('No body for', loadingFinished.requestId, err.message);
   }
@@ -87,6 +121,7 @@ export async function handleResponse(response, loadingFinished, tabId) {
     },
   };
   state.counters.http_res++;
+  if (!shouldCaptureHttp(evt)) return;
   addEvent(evt);
 }
 
@@ -107,7 +142,7 @@ export async function handleWebSocketCreated(params, tabId) {
 }
 
 export async function handleWebSocketFrame(params, tabId, direction) {
-  const body = await prepareBody(params.response.payloadData, params.response.opcode !== 1);
+  const body = await prepareBody(params.response.payloadData, params.response.opcode !== 1, 'response');
   const evt = {
     id: `evt_${Date.now()}_${state.seq++}`,
     plane: 'A',
@@ -127,5 +162,6 @@ export async function handleWebSocketFrame(params, tabId, direction) {
     },
   };
   state.counters.ws_frames++;
+  if (!shouldCaptureWsFrame(evt)) return;
   addEvent(evt);
 }

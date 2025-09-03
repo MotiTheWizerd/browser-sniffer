@@ -14,6 +14,21 @@
   </head>
   <body>
     <div class="row">
+      <label><input id="http_assets" type="checkbox"> Capture assets</label>
+      <label><input id="analytics" type="checkbox"> Capture analytics</label>
+    </div>
+    <div class="row">
+      <label><input id="ws_small_frames" type="checkbox"> Capture tiny WS frames</label>
+    </div>
+    <div class="row">
+      <label><input id="request_bodies" type="checkbox" checked> Request bodies</label>
+      <label><input id="response_bodies" type="checkbox" checked> Response bodies</label>
+    </div>
+    <div class="row">
+      <label>WS min bytes <input id="ws_min_bytes" type="number" value="40" style="width:80px"></label>
+      <label>Body cap KB <input id="body_cap" type="number" value="128" style="width:80px"></label>
+    </div>
+    <div class="row">
       <button id="start">Start</button>
       <button id="stop">Stop</button>
     </div>
