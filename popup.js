@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const $ = (id) => document.getElementById(id);
   const send = (command) => chrome.runtime.sendMessage({ command });
-
+ // comment
 
   let settings = {};
+
   try {
     ({ settings } = await chrome.storage.sync.get(['settings']));
   } catch (err) {
