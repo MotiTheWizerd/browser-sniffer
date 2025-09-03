@@ -7,3 +7,4 @@
 - Removed duplicate legacy settings logic from popup script causing runtime errors.
 - Cleaned up stale conflict markers in documentation.
 - Replaced disallowed dynamic import in service worker with static import to restore background functionality.
+- Removed top-level await in service worker initialization to ensure reliable registration.
