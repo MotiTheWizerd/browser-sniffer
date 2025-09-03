@@ -8,3 +8,4 @@
 - Cleaned up stale conflict markers in documentation.
 - Replaced disallowed dynamic import in service worker with static import to restore background functionality.
 - Removed top-level await in service worker initialization to ensure reliable registration.
+- Added explicit messaging handshake between popup and background to restore functional control buttons.
