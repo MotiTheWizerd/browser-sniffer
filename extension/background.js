@@ -1,5 +1,3 @@
-// background.js — Codex preserved + master guard
-
 const DB_NAME = 'netprofiler';
 const DB_VERSION = 1;
 const EVENTS_STORE = 'events_v1';
@@ -51,7 +49,7 @@ async function storeMeta() {
   const db = await openDB();
   const tx = db.transaction(META_STORE, 'readwrite');
   tx.objectStore(META_STORE).put({ key: 'run', ...runMeta });
-  return tx.complete; // (Codex original)
+  return tx.complete;
 }
 
 async function flushBuffer() {
@@ -377,7 +375,6 @@ async function exportData() {
         resolve();
       }
     };
-    // keep Codex structure
     store.openCursor().onerror = () => reject(store.openCursor().error);
   });
 }
@@ -394,16 +391,16 @@ async function purgeData() {
   const tx = db.transaction([EVENTS_STORE, META_STORE], 'readwrite');
   tx.objectStore(EVENTS_STORE).clear();
   tx.objectStore(META_STORE).clear();
-  await tx.complete; // (Codex original)
+  await tx.complete;
 }
 
 setInterval(() => {
   console.log('Counters', counters);
 }, 2000);
 
-// Codex original listener signature
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.command === 'start') {
+    console.log('starting')
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) {
       console.warn('No active tab to attach');
@@ -442,12 +439,9 @@ chrome.runtime.onMessage.addListener(async (message) => {
   }
 });
 
-// ===== CDP events (Codex logic + master guard) =====
 chrome.debugger.onEvent.addListener(async (source, method, params) => {
-  // master guard added:
-  if (!source.tabId || !activeDebuggers.has(source.tabId)) return;
-
   const tabId = source.tabId;
+  if (!tabId) return;
   switch (method) {
     case 'Network.requestWillBeSent':
       await handleRequest(params, tabId);
