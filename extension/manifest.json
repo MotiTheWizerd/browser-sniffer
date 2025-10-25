@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Browser Sniffer",
+  "version": "0.1.0",
+  "description": "Capture network activity via Chrome DevTools Protocol",
+  "permissions": ["debugger", "tabs", "activeTab", "storage", "downloads"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "devtools_page": "devtools.html"
+}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Browser Sniffer Panel</title>
+    <style>
+      #tabs button { margin-right: 8px; }
+      #inspect { white-space: pre-wrap; }
+    </style>
+    <script src="devtools.js"></script>
+  </head>
+  <body>
+    <div id="tabs">
+      <button data-tab="timeline">Timeline</button>
+      <button data-tab="inspect">Inspect</button>
+    </div>
+    <div id="timeline"></div>
+    <div id="inspect" style="display:none;"></div>
+  </body>
+</html>
+
